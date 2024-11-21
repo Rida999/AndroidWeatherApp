@@ -5,16 +5,14 @@ plugins {
 
 android {
     namespace = "com.example.midtermproject"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.example.midtermproject"
-        minSdk = 24
-        targetSdk = 34
+        minSdk = 21 // Adjust as per your app's minimum supported version
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
-
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {

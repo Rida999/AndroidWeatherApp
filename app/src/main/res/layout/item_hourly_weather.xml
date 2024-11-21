@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/hourly_weather_item"
+    android:layout_width="130dp"
+    android:layout_height="200dp"
+    android:layout_marginEnd="8dp"
+    app:cardBackgroundColor="@android:color/white"
+    app:cardCornerRadius="16dp"
+    app:layout_constraintWidth_percent="0.28">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="8dp">
+
+        <TextView
+            android:id="@+id/hourly_weather_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="10 AM"
+            android:textColor="@android:color/black"
+            android:textSize="20sp" />
+
+        <ImageView
+            android:id="@+id/hourly_weather_icon"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:contentDescription="Weather Icon"
+            android:layout_marginVertical="50px"/>
+
+        <TextView
+            android:id="@+id/hourly_weather_temperature"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="25°C"
+            android:textColor="@android:color/black"
+            android:textSize="20sp" />
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>
