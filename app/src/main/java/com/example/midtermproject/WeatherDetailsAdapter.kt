@@ -7,7 +7,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 
-class WeatherDetailsAdapter(private val weatherDetails: List<WeatherDetail>) :
+class WeatherDetailsAdapter(private var weatherDetails: List<WeatherDetail>) :
     RecyclerView.Adapter<WeatherDetailsAdapter.WeatherDetailsViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): WeatherDetailsViewHolder {
@@ -25,9 +25,15 @@ class WeatherDetailsAdapter(private val weatherDetails: List<WeatherDetail>) :
 
     override fun getItemCount(): Int = weatherDetails.size
 
+    fun updateWeatherDetails(newDetails: List<WeatherDetail>) {
+        weatherDetails = newDetails
+        notifyDataSetChanged()
+    }
+
     inner class WeatherDetailsViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val icon: ImageView = itemView.findViewById(R.id.weather_detail_icon)
         val title: TextView = itemView.findViewById(R.id.weather_detail_title)
         val value: TextView = itemView.findViewById(R.id.weather_detail_value)
     }
 }
+

@@ -4,7 +4,7 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/sky_blue"
+    android:background="@drawable/sunny_bg"
     tools:context=".MainActivity">
 
     <!-- Country Name at the Top -->
@@ -82,7 +82,7 @@
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/weather_details_recycler_view"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="300dp"
         android:layout_marginTop="16dp"
         android:layout_marginBottom="16dp"
         app:layout_constraintBottom_toBottomOf="parent"

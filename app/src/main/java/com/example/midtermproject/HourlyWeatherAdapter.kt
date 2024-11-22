@@ -7,7 +7,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 
-class HourlyWeatherAdapter(private val hourlyWeatherList: List<HourlyWeather>) :
+class HourlyWeatherAdapter(private var hourlyWeatherList: List<HourlyWeather>) :
     RecyclerView.Adapter<HourlyWeatherAdapter.HourlyWeatherViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): HourlyWeatherViewHolder {
@@ -24,6 +24,12 @@ class HourlyWeatherAdapter(private val hourlyWeatherList: List<HourlyWeather>) :
     }
 
     override fun getItemCount(): Int = hourlyWeatherList.size
+
+    // Update the list of hourly weather data and notify the adapter
+    fun updateHourlyWeather(newHourlyWeatherList: List<HourlyWeather>) {
+        hourlyWeatherList = newHourlyWeatherList
+        notifyDataSetChanged()
+    }
 
     inner class HourlyWeatherViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val time: TextView = itemView.findViewById(R.id.hourly_weather_time)

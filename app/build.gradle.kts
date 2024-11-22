@@ -1,18 +1,21 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+    kotlin("plugin.serialization") version "1.9.0"
 }
 
 android {
     namespace = "com.example.midtermproject"
-    compileSdk = 35
+    compileSdk = 35  // Update this from 34 to 35
 
     defaultConfig {
         applicationId = "com.example.midtermproject"
-        minSdk = 21 // Adjust as per your app's minimum supported version
-        targetSdk = 35
+        minSdk = 24
+        targetSdk = 35  // Optionally update this too to match compileSdk
         versionCode = 1
         versionName = "1.0"
+
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
@@ -31,10 +34,13 @@ android {
     kotlinOptions {
         jvmTarget = "1.8"
     }
+
+    buildFeatures {
+        viewBinding = true
+    }
 }
 
 dependencies {
-
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
@@ -43,4 +49,11 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+
+    // Retrofit for API calls
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+
+    // OkHttp for network logging (optional, but useful)
+    implementation("com.squareup.okhttp3:logging-interceptor:4.10.0")
 }

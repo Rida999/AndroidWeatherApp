@@ -5,13 +5,25 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.ImageView
 import android.widget.PopupMenu
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import retrofit2.Response
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.http.GET
+import retrofit2.http.Query
+import java.text.SimpleDateFormat
+import java.util.*
 
 class MainActivity : AppCompatActivity() {
 
@@ -23,6 +35,10 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        // Fetch weather data with sleep to load api
+        fetchWeatherData("Beirut")
+        Thread.sleep(2000)
+
         setContentView(R.layout.activity_main)
 
         // Handle edge-to-edge insets
@@ -32,65 +48,91 @@ class MainActivity : AppCompatActivity() {
             insets
         }
 
-        // Set up the RecyclerView for weather details
+        // Initialize weather details RecyclerView
         weatherDetailsRecyclerView = findViewById(R.id.weather_details_recycler_view)
-        val gridLayoutManager = GridLayoutManager(this, 2)
-        weatherDetailsRecyclerView.layoutManager = gridLayoutManager
-
-        // Sample weather data for weather details
-        val weatherDetails = listOf(
-            WeatherDetail(R.drawable.ic_wind, "Wind", "12 km/h"),
-            WeatherDetail(R.drawable.ic_humidity, "Humidity", "60%"),
-            WeatherDetail(R.drawable.ic_rain, "Rain", "10%"),
-            WeatherDetail(R.drawable.ic_uv, "UV Index", "5 (Moderate)")
-        )
-
-        // Set the adapter for weather details
-        weatherDetailsAdapter = WeatherDetailsAdapter(weatherDetails)
+        weatherDetailsRecyclerView.layoutManager = GridLayoutManager(this, 2)
+        weatherDetailsAdapter = WeatherDetailsAdapter(emptyList())
         weatherDetailsRecyclerView.adapter = weatherDetailsAdapter
 
-        // Set up the RecyclerView for hourly weather
+        // Initialize hourly weather RecyclerView
         hourlyWeatherRecyclerView = findViewById(R.id.hourly_weather_recycler_view)
         hourlyWeatherRecyclerView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
-
-        // Sample hourly weather data
-        val hourlyWeather = listOf(
-            HourlyWeather("10 AM", "25°C", R.drawable.ic_sunny),
-            HourlyWeather("11 AM", "26°C", R.drawable.ic_sunny),
-            HourlyWeather("12 PM", "28°C", R.drawable.ic_sunny),
-            HourlyWeather("1 PM", "30°C", R.drawable.ic_sunny),
-            HourlyWeather("2 PM", "29°C", R.drawable.ic_rain),
-            HourlyWeather("3 PM", "27°C", R.drawable.ic_sunny),
-            HourlyWeather("4 PM", "27°C", R.drawable.ic_sunny),
-            HourlyWeather("5 PM", "27°C", R.drawable.ic_sunny),
-            HourlyWeather("6 PM", "27°C", R.drawable.ic_sunny),
-            HourlyWeather("7 PM", "27°C", R.drawable.ic_sunny),
-            HourlyWeather("8 PM", "27°C", R.drawable.ic_sunny),
-            HourlyWeather("9 PM", "27°C", R.drawable.ic_sunny),
-            HourlyWeather("10 PM", "27°C", R.drawable.ic_sunny)
-        )
-
-        // Set the adapter for hourly weather
-        hourlyWeatherAdapter = HourlyWeatherAdapter(hourlyWeather)
+        hourlyWeatherAdapter = HourlyWeatherAdapter(emptyList())
         hourlyWeatherRecyclerView.adapter = hourlyWeatherAdapter
 
-        // Set up the profile picture dropdown
+
+        // Set up profile picture dropdown
         val profilePicture: ImageView = findViewById(R.id.profile_picture)
         profilePicture.setOnClickListener { view ->
             showProfileMenu(view)
         }
     }
 
-    // Function to display the popup menu for the profile picture
+    private fun fetchWeatherData(city: String) {
+        val apiKey = "9a01a377a7698cdced82a1e9e1e43aec"
+        val retrofit = Retrofit.Builder()
+            .baseUrl("https://api.openweathermap.org/data/2.5/")
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+        val weatherService = retrofit.create(WeatherService::class.java)
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                val response: Response<WeatherResponse> = weatherService.getWeather(city, apiKey)
+                if (response.isSuccessful) {
+                    val weatherData = response.body()
+                    if (weatherData != null) {
+                        val weatherDetails = listOf(
+                            WeatherDetail(R.drawable.ic_min_temp, "Min Temp", "${weatherData.main.temp_min}°C"),
+                            WeatherDetail(R.drawable.ic_max_temp, "Max Temp", "${weatherData.main.temp_max}°C"),
+                            WeatherDetail(R.drawable.ic_wind, "Wind", "${weatherData.wind.speed} m/s"),
+                            WeatherDetail(R.drawable.ic_humidity, "Humidity", "${weatherData.main.humidity}%"),
+                            WeatherDetail(R.drawable.ic_pressure, "Pressure", "${weatherData.main.pressure} hPa"),
+                            WeatherDetail(R.drawable.ic_sunrise, "Sunrise", formatUnixTime(weatherData.sys.sunrise))
+                        )
+
+                        val hourlyWeather = generateHourlyWeather()
+
+                        withContext(Dispatchers.Main) {
+                            weatherDetailsAdapter.updateWeatherDetails(weatherDetails)
+                            hourlyWeatherAdapter.updateHourlyWeather(hourlyWeather)
+
+                        }
+                    }
+                } else {
+                    showToast("Failed to fetch weather data")
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    showToast("Error: ${e.message}")
+                }
+            }
+        }
+    }
+
+    private fun generateHourlyWeather(): List<HourlyWeather> {
+        return listOf(
+            HourlyWeather("10 AM", "25°C", R.drawable.ic_sunny),
+            HourlyWeather("11 AM", "26°C", R.drawable.ic_sunny),
+            HourlyWeather("12 PM", "28°C", R.drawable.ic_sunny),
+            HourlyWeather("1 PM", "30°C", R.drawable.ic_sunny)
+            // Add more as needed
+        )
+    }
+
+    private fun formatUnixTime(unixTime: Long): String {
+        val date = Date(unixTime * 1000)
+        val format = SimpleDateFormat("hh:mm a", Locale.getDefault())
+        return format.format(date)
+    }
+
     private fun showProfileMenu(anchor: View) {
         val popupMenu = PopupMenu(this, anchor)
         popupMenu.menuInflater.inflate(R.menu.profile_menu, popupMenu.menu)
 
-        // Handle menu item clicks
         popupMenu.setOnMenuItemClickListener { item: MenuItem ->
             when (item.itemId) {
                 R.id.logout -> {
-                    // Perform logout action
                     logoutUser()
                     true
                 }
@@ -100,9 +142,29 @@ class MainActivity : AppCompatActivity() {
         popupMenu.show()
     }
 
-    // Function to handle user logout
     private fun logoutUser() {
-        // Add your logout logic here
-        finish() // Placeholder for now (closes the activity)
+        finish() // Placeholder for now
     }
+
+    private fun showToast(message: String) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+    }
+
+    // Retrofit Service and Response Classes
+    interface WeatherService {
+        @GET("weather")
+        suspend fun getWeather(
+            @Query("q") city: String,
+            @Query("appid") apiKey: String,
+            @Query("units") units: String = "metric"
+        ): Response<WeatherResponse>
+    }
+
+    data class WeatherResponse(val main: Main, val wind: Wind, val sys: Sys)
+
+    data class Main(val temp_min: Float, val temp_max: Float, val humidity: Int, val pressure: Int)
+
+    data class Wind(val speed: Float)
+
+    data class Sys(val sunrise: Long)
 }
