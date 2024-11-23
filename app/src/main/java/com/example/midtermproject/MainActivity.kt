@@ -5,6 +5,7 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.ImageView
 import android.widget.PopupMenu
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -27,6 +28,8 @@ import java.util.*
 
 class MainActivity : AppCompatActivity() {
 
+    private lateinit var cityNameTextView: TextView
+    private lateinit var currentTempTextView: TextView
     private lateinit var weatherDetailsRecyclerView: RecyclerView
     private lateinit var weatherDetailsAdapter: WeatherDetailsAdapter
     private lateinit var hourlyWeatherRecyclerView: RecyclerView
@@ -35,7 +38,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        // Fetch weather data with sleep to load api
+        // Fetch weather data with sleep to load API
         fetchWeatherData("Beirut")
         Thread.sleep(2000)
 
@@ -48,6 +51,10 @@ class MainActivity : AppCompatActivity() {
             insets
         }
 
+        // Initialize Views
+        cityNameTextView = findViewById(R.id.country_name)
+        currentTempTextView = findViewById(R.id.temperature)
+
         // Initialize weather details RecyclerView
         weatherDetailsRecyclerView = findViewById(R.id.weather_details_recycler_view)
         weatherDetailsRecyclerView.layoutManager = GridLayoutManager(this, 2)
@@ -59,7 +66,6 @@ class MainActivity : AppCompatActivity() {
         hourlyWeatherRecyclerView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
         hourlyWeatherAdapter = HourlyWeatherAdapter(emptyList())
         hourlyWeatherRecyclerView.adapter = hourlyWeatherAdapter
-
 
         // Set up profile picture dropdown
         val profilePicture: ImageView = findViewById(R.id.profile_picture)
@@ -82,6 +88,10 @@ class MainActivity : AppCompatActivity() {
                 if (response.isSuccessful) {
                     val weatherData = response.body()
                     if (weatherData != null) {
+                        val country = weatherData.sys.country
+                        val currentTemp = weatherData.main.temp // Fetch real temperature
+                        val location = "$country, $city"
+
                         val weatherDetails = listOf(
                             WeatherDetail(R.drawable.ic_min_temp, "Min Temp", "${weatherData.main.temp_min}°C"),
                             WeatherDetail(R.drawable.ic_max_temp, "Max Temp", "${weatherData.main.temp_max}°C"),
@@ -94,9 +104,10 @@ class MainActivity : AppCompatActivity() {
                         val hourlyWeather = generateHourlyWeather()
 
                         withContext(Dispatchers.Main) {
+                            cityNameTextView.text = location
+                            currentTempTextView.text = "${currentTemp}°C"
                             weatherDetailsAdapter.updateWeatherDetails(weatherDetails)
                             hourlyWeatherAdapter.updateHourlyWeather(hourlyWeather)
-
                         }
                     }
                 } else {
@@ -116,7 +127,6 @@ class MainActivity : AppCompatActivity() {
             HourlyWeather("11 AM", "26°C", R.drawable.ic_sunny),
             HourlyWeather("12 PM", "28°C", R.drawable.ic_sunny),
             HourlyWeather("1 PM", "30°C", R.drawable.ic_sunny)
-            // Add more as needed
         )
     }
 
@@ -162,9 +172,9 @@ class MainActivity : AppCompatActivity() {
 
     data class WeatherResponse(val main: Main, val wind: Wind, val sys: Sys)
 
-    data class Main(val temp_min: Float, val temp_max: Float, val humidity: Int, val pressure: Int)
+    data class Main(val temp: Float, val temp_min: Float, val temp_max: Float, val humidity: Int, val pressure: Int)
 
     data class Wind(val speed: Float)
 
-    data class Sys(val sunrise: Long)
+    data class Sys(val sunrise: Long, val country: String)
 }
