@@ -1,8 +1,10 @@
 package com.example.midtermproject
 
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
+import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.PopupMenu
 import android.widget.TextView
@@ -38,18 +40,8 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        // Fetch weather data with sleep to load API
-        fetchWeatherData("Beirut")
-        Thread.sleep(2000)
 
         setContentView(R.layout.activity_main)
-
-        // Handle edge-to-edge insets
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
-        }
 
         // Initialize Views
         cityNameTextView = findViewById(R.id.country_name)
@@ -72,6 +64,9 @@ class MainActivity : AppCompatActivity() {
         profilePicture.setOnClickListener { view ->
             showProfileMenu(view)
         }
+
+        // Fetch weather data
+        fetchWeatherData("Beirut")
     }
 
     private fun fetchWeatherData(city: String) {
@@ -88,23 +83,22 @@ class MainActivity : AppCompatActivity() {
                 if (response.isSuccessful) {
                     val weatherData = response.body()
                     if (weatherData != null) {
-                        val country = weatherData.sys.country
-                        val currentTemp = weatherData.main.temp // Fetch real temperature
-                        val location = "$country, $city"
-
+                        val cityName = weatherData.city.name
+                        val currentTemp = weatherData.list[0].main.temp // Get the temperature of the first forecast period
                         val weatherDetails = listOf(
-                            WeatherDetail(R.drawable.ic_min_temp, "Min Temp", "${weatherData.main.temp_min}°C"),
-                            WeatherDetail(R.drawable.ic_max_temp, "Max Temp", "${weatherData.main.temp_max}°C"),
-                            WeatherDetail(R.drawable.ic_wind, "Wind", "${weatherData.wind.speed} m/s"),
-                            WeatherDetail(R.drawable.ic_humidity, "Humidity", "${weatherData.main.humidity}%"),
-                            WeatherDetail(R.drawable.ic_pressure, "Pressure", "${weatherData.main.pressure} hPa"),
-                            WeatherDetail(R.drawable.ic_sunrise, "Sunrise", formatUnixTime(weatherData.sys.sunrise))
+                            WeatherDetail(R.drawable.ic_min_temp, "Min Temp", "${weatherData.list[0].main.temp_min}°C"),
+                            WeatherDetail(R.drawable.ic_max_temp, "Max Temp", "${weatherData.list[0].main.temp_max}°C"),
+                            WeatherDetail(R.drawable.ic_wind, "Wind", "${weatherData.list[0].wind.speed} m/s"),
+                            WeatherDetail(R.drawable.ic_humidity, "Humidity", "${weatherData.list[0].main.humidity}%"),
+                            WeatherDetail(R.drawable.ic_pressure, "Pressure", "${weatherData.list[0].main.pressure} hPa"),
+                            WeatherDetail(R.drawable.ic_sunrise, "Sunrise", formatUnixTime(weatherData.city.sunrise))
                         )
 
-                        val hourlyWeather = generateHourlyWeather()
+                        // Generate hourly weather list from the API response
+                        val hourlyWeather = generateHourlyWeather(weatherData.list)
 
                         withContext(Dispatchers.Main) {
-                            cityNameTextView.text = location
+                            cityNameTextView.text = "$cityName, ${weatherData.city.country}"
                             currentTempTextView.text = "${currentTemp}°C"
                             weatherDetailsAdapter.updateWeatherDetails(weatherDetails)
                             hourlyWeatherAdapter.updateHourlyWeather(hourlyWeather)
@@ -121,13 +115,17 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun generateHourlyWeather(): List<HourlyWeather> {
-        return listOf(
-            HourlyWeather("10 AM", "25°C", R.drawable.ic_sunny),
-            HourlyWeather("11 AM", "26°C", R.drawable.ic_sunny),
-            HourlyWeather("12 PM", "28°C", R.drawable.ic_sunny),
-            HourlyWeather("1 PM", "30°C", R.drawable.ic_sunny)
-        )
+    private fun generateHourlyWeather(forecastList: List<HourlyForecast>): List<HourlyWeather> {
+        // Filter out duplicates based on time and get only the first 8 unique hours
+        val uniqueHourlyWeather = forecastList
+            .distinctBy { formatUnixTime(it.dt) } // Remove duplicate times
+            .take(8) // Limit to the first 8 hours
+
+        return uniqueHourlyWeather.map { forecast ->
+            val time = formatUnixTime(forecast.dt)
+            val temp = forecast.main.temp
+            HourlyWeather(time, "${temp.toInt()}°C", R.drawable.ic_sunny)
+        }
     }
 
     private fun formatUnixTime(unixTime: Long): String {
@@ -162,7 +160,7 @@ class MainActivity : AppCompatActivity() {
 
     // Retrofit Service and Response Classes
     interface WeatherService {
-        @GET("weather")
+        @GET("forecast")
         suspend fun getWeather(
             @Query("q") city: String,
             @Query("appid") apiKey: String,
@@ -170,11 +168,58 @@ class MainActivity : AppCompatActivity() {
         ): Response<WeatherResponse>
     }
 
-    data class WeatherResponse(val main: Main, val wind: Wind, val sys: Sys)
+    data class WeatherResponse(
+        val city: City,
+        val list: List<HourlyForecast>
+    )
+
+    data class City(val name: String, val country: String, val sunrise: Long)
+
+    data class HourlyForecast(
+        val dt: Long,
+        val main: Main,
+        val weather: List<Weather>,
+        val wind: Wind
+    )
 
     data class Main(val temp: Float, val temp_min: Float, val temp_max: Float, val humidity: Int, val pressure: Int)
 
+    data class Weather(val description: String)
+
     data class Wind(val speed: Float)
 
-    data class Sys(val sunrise: Long, val country: String)
+    // HourlyWeather model for RecyclerView
+    data class HourlyWeather(val time: String, val temperature: String, val iconResId: Int)
+
+    // Adapter for HourlyWeather
+    class HourlyWeatherAdapter(private var hourlyWeatherList: List<HourlyWeather>) : RecyclerView.Adapter<HourlyWeatherAdapter.HourlyWeatherViewHolder>() {
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): HourlyWeatherViewHolder {
+            val view = LayoutInflater.from(parent.context).inflate(R.layout.item_hourly_weather, parent, false)
+            return HourlyWeatherViewHolder(view)
+        }
+
+        override fun onBindViewHolder(holder: HourlyWeatherViewHolder, position: Int) {
+            val hourlyWeather = hourlyWeatherList[position]
+            holder.bind(hourlyWeather)
+        }
+
+        override fun getItemCount(): Int = hourlyWeatherList.size
+
+        fun updateHourlyWeather(newHourlyWeatherList: List<HourlyWeather>) {
+            hourlyWeatherList = newHourlyWeatherList
+            notifyDataSetChanged()
+        }
+
+        class HourlyWeatherViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+            private val timeTextView: TextView = itemView.findViewById(R.id.hourly_weather_time)
+            private val tempTextView: TextView = itemView.findViewById(R.id.hourly_weather_temperature)
+            private val weatherIcon: ImageView = itemView.findViewById(R.id.hourly_weather_icon)
+
+            fun bind(hourlyWeather: HourlyWeather) {
+                timeTextView.text = hourlyWeather.time
+                tempTextView.text = hourlyWeather.temperature
+                weatherIcon.setImageResource(hourlyWeather.iconResId)
+            }
+        }
+    }
 }
