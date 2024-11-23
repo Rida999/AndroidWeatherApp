@@ -36,6 +36,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var weatherDetailsAdapter: WeatherDetailsAdapter
     private lateinit var hourlyWeatherRecyclerView: RecyclerView
     private lateinit var hourlyWeatherAdapter: HourlyWeatherAdapter
+    private lateinit var weatherIcon: ImageView  // Add this line for weather icon
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,6 +47,7 @@ class MainActivity : AppCompatActivity() {
         // Initialize Views
         cityNameTextView = findViewById(R.id.country_name)
         currentTempTextView = findViewById(R.id.temperature)
+        weatherIcon = findViewById(R.id.weather_icon)  // Initialize weather_icon ImageView
 
         // Initialize weather details RecyclerView
         weatherDetailsRecyclerView = findViewById(R.id.weather_details_recycler_view)
@@ -94,12 +96,17 @@ class MainActivity : AppCompatActivity() {
                             WeatherDetail(R.drawable.ic_sunrise, "Sunrise", formatUnixTime(weatherData.city.sunrise))
                         )
 
+                        // Get weather icon for current weather
+                        val weatherCondition = weatherData.list[0].weather.firstOrNull()?.main ?: "Clear"
+                        val currentWeatherIcon = getWeatherIcon(weatherCondition)
+
                         // Generate hourly weather list from the API response
                         val hourlyWeather = generateHourlyWeather(weatherData.list)
 
                         withContext(Dispatchers.Main) {
                             cityNameTextView.text = "$cityName, ${weatherData.city.country}"
                             currentTempTextView.text = "${currentTemp}°C"
+                            weatherIcon.setImageResource(currentWeatherIcon)  // Set weather icon based on the current weather
                             weatherDetailsAdapter.updateWeatherDetails(weatherDetails)
                             hourlyWeatherAdapter.updateHourlyWeather(hourlyWeather)
                         }
@@ -124,7 +131,20 @@ class MainActivity : AppCompatActivity() {
         return uniqueHourlyWeather.map { forecast ->
             val time = formatUnixTime(forecast.dt)
             val temp = forecast.main.temp
-            HourlyWeather(time, "${temp.toInt()}°C", R.drawable.ic_sunny)
+            val weatherCondition = forecast.weather.firstOrNull()?.main ?: "Clear" // Default to "Clear" if no condition is found
+            val iconResId = getWeatherIcon(weatherCondition)
+
+            HourlyWeather(time, "${temp.toInt()}°C", iconResId)
+        }
+    }
+
+    private fun getWeatherIcon(weatherCondition: String): Int {
+        return when (weatherCondition) {
+            "Clear" -> R.drawable.ic_sunny
+            "Rain" -> R.drawable.ic_rain
+            "Snow" -> R.drawable.ic_snowy
+            "Clouds" -> R.drawable.ic_cloudy
+            else -> R.drawable.ic_sunny // Default to sunny if the condition is not recognized
         }
     }
 
@@ -184,7 +204,7 @@ class MainActivity : AppCompatActivity() {
 
     data class Main(val temp: Float, val temp_min: Float, val temp_max: Float, val humidity: Int, val pressure: Int)
 
-    data class Weather(val description: String)
+    data class Weather(val description: String, val main: String)
 
     data class Wind(val speed: Float)
 
