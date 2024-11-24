@@ -1,4 +1,4 @@
-package com.example.weatherapp
+package com.example.midtermproject
 
 import android.os.Bundle
 import android.view.View
@@ -7,9 +7,10 @@ import android.widget.EditText
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import android.widget.Toast
+import android.content.Intent
 import com.example.midtermproject.R
 
-class MainActivity : AppCompatActivity() {
+class Login : AppCompatActivity() {
 
     private lateinit var emailInput: EditText
     private lateinit var passwordInput: EditText
@@ -20,7 +21,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        setContentView(R.layout.login)
 
         // Initialize Views
         emailInput = findViewById(R.id.emailInput)
@@ -40,8 +41,8 @@ class MainActivity : AppCompatActivity() {
 
         // Sign Up Link Click Listener (Just a placeholder for now)
         signUpLink.setOnClickListener {
-            Toast.makeText(this, "Navigating to Sign Up page", Toast.LENGTH_SHORT).show()
-            // Here you can implement the navigation to the SignUpActivity
+            val intent = Intent(this, Signup::class.java)
+            startActivity(intent)
         }
     }
 
