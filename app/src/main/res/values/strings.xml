@@ -1,3 +1,9 @@
 <resources>
-    <string name="app_name">MidtermProject</string>
+    <string name="app_name">Weather App</string>
+    <string name="title">Weather App</string>
+    <string name="email_hint">Email</string>
+    <string name="password_hint">Password</string>
+    <string name="login">Login</string>
+    <string name="email_required">Email is required</string>
+    <string name="password_required">Password is required</string>
 </resources>
