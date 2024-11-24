@@ -1,0 +1,9 @@
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@android:color/transparent" />
+    <item>
+        <shape android:shape="oval">
+            <solid android:color="#40FFFFFF" /> <!-- Semi-transparent white -->
+            <size android:width="100dp" android:height="100dp" />
+        </shape>
+    </item>
+</layer-list>

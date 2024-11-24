@@ -54,6 +54,8 @@ dependencies {
     // Retrofit for API calls
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation ("com.airbnb.android:lottie:6.1.0")
+
 
     // OkHttp for network logging (optional, but useful)
     implementation("com.squareup.okhttp3:logging-interceptor:4.10.0")

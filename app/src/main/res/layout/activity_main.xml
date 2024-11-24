@@ -77,8 +77,6 @@
     <!-- RecyclerView for Weather Details -->
 
     <!-- Footer -->
-
-
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/weather_details_recycler_view"
         android:layout_width="match_parent"
@@ -118,5 +116,25 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         android:layout_marginBottom="16dp"/>
+
+    <!-- ProgressBar (Loading) -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignParentTop="true"
+        android:visibility="visible"
+        tools:layout_editor_absoluteX="0dp"
+        tools:layout_editor_absoluteY="0dp">
+
+        <com.airbnb.lottie.LottieAnimationView
+            android:id="@+id/animationView"
+            android:layout_width="200dp"
+            android:layout_height="200dp"
+            android:layout_gravity="center"
+            android:visibility="visible"
+            app:lottie_autoPlay="true"
+            app:lottie_loop="true"
+            app:lottie_rawRes="@raw/loading_animation2" /> <!-- Center the animation -->
+    </FrameLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

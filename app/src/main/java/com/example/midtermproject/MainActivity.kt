@@ -1,5 +1,6 @@
 package com.example.midtermproject
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.MenuItem
@@ -11,12 +12,11 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.airbnb.lottie.LottieAnimationView
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -36,18 +36,20 @@ class MainActivity : AppCompatActivity() {
     private lateinit var weatherDetailsAdapter: WeatherDetailsAdapter
     private lateinit var hourlyWeatherRecyclerView: RecyclerView
     private lateinit var hourlyWeatherAdapter: HourlyWeatherAdapter
-    private lateinit var weatherIcon: ImageView  // Add this line for weather icon
+    private lateinit var weatherIcon: ImageView
+    private lateinit var loadingAnimationView: LottieAnimationView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
         setContentView(R.layout.activity_main)
+        loadingAnimationView = findViewById(R.id.animationView)
 
         // Initialize Views
         cityNameTextView = findViewById(R.id.country_name)
         currentTempTextView = findViewById(R.id.temperature)
-        weatherIcon = findViewById(R.id.weather_icon)  // Initialize weather_icon ImageView
+        weatherIcon = findViewById(R.id.weather_icon)
 
         // Initialize weather details RecyclerView
         weatherDetailsRecyclerView = findViewById(R.id.weather_details_recycler_view)
@@ -68,10 +70,21 @@ class MainActivity : AppCompatActivity() {
         }
 
         // Fetch weather data
-        fetchWeatherData("Beirut")
+        val cityName = intent.getStringExtra("CITY_NAME") ?: "Beirut"
+        fetchWeatherData(cityName)
+
+        // Set up the button to navigate to the search page
+        val navButton: ImageView = findViewById(R.id.select_country_icon)
+        navButton.setOnClickListener {
+            val intent = Intent(this, SearchActivity::class.java)
+            startActivity(intent)
+        }
     }
 
     private fun fetchWeatherData(city: String) {
+        // Show the loading animation at the start
+        loadingAnimationView.visibility = View.VISIBLE
+
         val apiKey = "9a01a377a7698cdced82a1e9e1e43aec"
         val retrofit = Retrofit.Builder()
             .baseUrl("https://api.openweathermap.org/data/2.5/")
@@ -86,7 +99,7 @@ class MainActivity : AppCompatActivity() {
                     val weatherData = response.body()
                     if (weatherData != null) {
                         val cityName = weatherData.city.name
-                        val currentTemp = weatherData.list[0].main.temp // Get the temperature of the first forecast period
+                        val currentTemp = weatherData.list[0].main.temp
                         val weatherDetails = listOf(
                             WeatherDetail(R.drawable.ic_min_temp, "Min Temp", "${weatherData.list[0].main.temp_min}°C"),
                             WeatherDetail(R.drawable.ic_max_temp, "Max Temp", "${weatherData.list[0].main.temp_max}°C"),
@@ -96,27 +109,34 @@ class MainActivity : AppCompatActivity() {
                             WeatherDetail(R.drawable.ic_sunrise, "Sunrise", formatUnixTime(weatherData.city.sunrise))
                         )
 
-                        // Get weather icon for current weather
                         val weatherCondition = weatherData.list[0].weather.firstOrNull()?.main ?: "Clear"
                         val currentWeatherIcon = getWeatherIcon(weatherCondition)
 
-                        // Generate hourly weather list from the API response
                         val hourlyWeather = generateHourlyWeather(weatherData.list)
 
                         withContext(Dispatchers.Main) {
                             cityNameTextView.text = "$cityName, ${weatherData.city.country}"
                             currentTempTextView.text = "${currentTemp}°C"
-                            weatherIcon.setImageResource(currentWeatherIcon)  // Set weather icon based on the current weather
+                            weatherIcon.setImageResource(currentWeatherIcon)
                             weatherDetailsAdapter.updateWeatherDetails(weatherDetails)
                             hourlyWeatherAdapter.updateHourlyWeather(hourlyWeather)
+
+                            // Hide the loading animation after data is fetched
+                            loadingAnimationView.visibility = View.GONE
                         }
                     }
                 } else {
-                    showToast("Failed to fetch weather data")
+                    // Handle API failure (non-200 response)
+                    withContext(Dispatchers.Main) {
+                        showToast("Failed to fetch weather data")
+                        loadingAnimationView.visibility = View.GONE // Hide loading animation on failure
+                    }
                 }
             } catch (e: Exception) {
+                // Handle network failure or any other exception
                 withContext(Dispatchers.Main) {
                     showToast("Error: ${e.message}")
+                    loadingAnimationView.visibility = View.GONE // Hide loading animation on error
                 }
             }
         }
@@ -171,8 +191,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun logoutUser() {
-        finish() // Placeholder for now
+        val intent = Intent(this, SearchActivity::class.java)
+        startActivity(intent)
+        finish()  // Close the current activity if you no longer need it
     }
+
 
     private fun showToast(message: String) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
