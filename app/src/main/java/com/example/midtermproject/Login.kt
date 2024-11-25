@@ -46,7 +46,10 @@ class Login : AppCompatActivity() {
                     .addOnCompleteListener(this) { task ->
                         if (task.isSuccessful) {
                             Toast.makeText(this, "Login successful!", Toast.LENGTH_SHORT).show()
-                        } else {
+                            val intent = Intent(this, ChooseLocationActivity::class.java)
+                            startActivity(intent)
+                            finish()
+                        }else {
                             Toast.makeText(this, "Invalid credentials", Toast.LENGTH_SHORT).show()
                         }
                     }

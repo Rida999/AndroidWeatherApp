@@ -17,4 +17,5 @@
     <string name="invalid_email_format">Invalid email format</string>
     <string name="small_password">Password is too short</string>
     <string name="weak_password">Password is weak</string>
+    <string name="choose_your_location">Choose Your Location</string>
 </resources>
