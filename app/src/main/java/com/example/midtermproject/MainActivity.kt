@@ -38,6 +38,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var hourlyWeatherAdapter: HourlyWeatherAdapter
     private lateinit var weatherIcon: ImageView
     private lateinit var loadingAnimationView: LottieAnimationView
+    private lateinit var AppBackground: androidx.constraintlayout.widget.ConstraintLayout
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,6 +52,7 @@ class MainActivity : AppCompatActivity() {
         cityNameTextView = findViewById(R.id.country_name)
         currentTempTextView = findViewById(R.id.temperature)
         weatherIcon = findViewById(R.id.weather_icon)
+        AppBackground=findViewById(R.id.main)
 
         // Initialize weather details RecyclerView
         weatherDetailsRecyclerView = findViewById(R.id.weather_details_recycler_view)
@@ -111,6 +114,7 @@ class MainActivity : AppCompatActivity() {
 
                         val weatherCondition = weatherData.list[0].weather.firstOrNull()?.main ?: "Clear"
                         val currentWeatherIcon = getWeatherIcon(weatherCondition)
+                        val currentAppBg = getAppBackground(weatherCondition)
 
                         val hourlyWeather = generateHourlyWeather(weatherData.list)
 
@@ -120,6 +124,7 @@ class MainActivity : AppCompatActivity() {
                             weatherIcon.setImageResource(currentWeatherIcon)
                             weatherDetailsAdapter.updateWeatherDetails(weatherDetails)
                             hourlyWeatherAdapter.updateHourlyWeather(hourlyWeather)
+                            AppBackground.setBackgroundResource(currentAppBg)
 
                             // Hide the loading animation after data is fetched
                             loadingAnimationView.visibility = View.GONE
@@ -165,6 +170,16 @@ class MainActivity : AppCompatActivity() {
             "Snow" -> R.drawable.ic_snowy
             "Clouds" -> R.drawable.ic_cloudy
             else -> R.drawable.ic_sunny // Default to sunny if the condition is not recognized
+        }
+    }
+
+    private fun getAppBackground(weatherCondition: String): Int {
+        return when (weatherCondition) {
+            "Clear" -> R.drawable.sunny_bg
+            "Rain" -> R.drawable.rainy_bg
+            "Snow" -> R.drawable.snow_bg
+            "Clouds" -> R.drawable.cloudy_bg
+            else -> R.drawable.sunny_bg // Default to sunny if the condition is not recognized
         }
     }
 
