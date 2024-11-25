@@ -4,7 +4,8 @@ import android.os.Bundle
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
-import com.example.midtermproject.R
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.FirebaseDatabase
 
 class Signup : AppCompatActivity() {
 
@@ -20,9 +21,16 @@ class Signup : AppCompatActivity() {
     private lateinit var confirmPasswordError: TextView
     private lateinit var signupButton: Button
 
+    private lateinit var auth: FirebaseAuth
+    private lateinit var database: FirebaseDatabase
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.signup)
+
+        // Initialize Firebase Auth and Database
+        auth = FirebaseAuth.getInstance()
+        database = FirebaseDatabase.getInstance()
 
         // Initialize Views
         nameInput = findViewById(R.id.nameInput)
@@ -40,10 +48,36 @@ class Signup : AppCompatActivity() {
         // Signup Button Click Listener
         signupButton.setOnClickListener {
             if (validateInputs()) {
-                // Logic for signup (Placeholder for now)
-                Toast.makeText(this, "Signup successful!", Toast.LENGTH_SHORT).show()
-                // Navigate to Login Activity
-                finish()
+                val email = emailInput.text.toString()
+                val password = passwordInput.text.toString()
+                val name = nameInput.text.toString()
+                val phone = phoneInput.text.toString()
+
+                auth.createUserWithEmailAndPassword(email, password)
+                    .addOnCompleteListener(this) { task ->
+                        if (task.isSuccessful) {
+                            val user = auth.currentUser
+                            val userId = user?.uid
+                            val userMap = mapOf(
+                                "name" to name,
+                                "phone" to phone,
+                                "email" to email
+                            )
+                            userId?.let {
+                                database.reference.child("users").child(it).setValue(userMap)
+                                    .addOnCompleteListener { dbTask ->
+                                        if (dbTask.isSuccessful) {
+                                            Toast.makeText(this, "Signup successful!", Toast.LENGTH_SHORT).show()
+                                            finish()
+                                        } else {
+                                            Toast.makeText(this, "Database error: ${dbTask.exception?.message}", Toast.LENGTH_SHORT).show()
+                                        }
+                                    }
+                            }
+                        } else {
+                            Toast.makeText(this, "Authentication failed: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
+                        }
+                    }
             }
         }
     }

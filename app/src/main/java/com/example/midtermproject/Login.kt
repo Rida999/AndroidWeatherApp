@@ -8,7 +8,7 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import android.widget.Toast
 import android.content.Intent
-import com.example.midtermproject.R
+import com.google.firebase.auth.FirebaseAuth
 
 class Login : AppCompatActivity() {
 
@@ -19,9 +19,14 @@ class Login : AppCompatActivity() {
     private lateinit var loginButton: Button
     private lateinit var signUpLink: TextView
 
+    private lateinit var auth: FirebaseAuth
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.login)
+
+        // Initialize Firebase Auth
+        auth = FirebaseAuth.getInstance()
 
         // Initialize Views
         emailInput = findViewById(R.id.emailInput)
@@ -34,12 +39,21 @@ class Login : AppCompatActivity() {
         // Login Button Click Listener
         loginButton.setOnClickListener {
             if (validateInputs()) {
-                // Logic for login (Placeholder for now)
-                Toast.makeText(this, "Login successful!", Toast.LENGTH_SHORT).show()
+                val email = emailInput.text.toString()
+                val password = passwordInput.text.toString()
+
+                auth.signInWithEmailAndPassword(email, password)
+                    .addOnCompleteListener(this) { task ->
+                        if (task.isSuccessful) {
+                            Toast.makeText(this, "Login successful!", Toast.LENGTH_SHORT).show()
+                        } else {
+                            Toast.makeText(this, "Invalid credentials", Toast.LENGTH_SHORT).show()
+                        }
+                    }
             }
         }
 
-        // Sign Up Link Click Listener (Just a placeholder for now)
+        // Sign Up Link Click Listener
         signUpLink.setOnClickListener {
             val intent = Intent(this, Signup::class.java)
             startActivity(intent)

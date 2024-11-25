@@ -1,7 +1,8 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
-    kotlin("kapt") // Add this to apply KAPT plugin
+
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -47,4 +48,10 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+
+    implementation("com.google.firebase:firebase-auth:22.1.1") // Add Firebase Auth
+    implementation("com.google.firebase:firebase-database:20.2.2") // Add Firebase Database
+
 }
+
+
