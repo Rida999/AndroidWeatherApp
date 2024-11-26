@@ -79,7 +79,7 @@ class MainActivity : AppCompatActivity() {
         // Set up the button to navigate to the search page
         val navButton: ImageView = findViewById(R.id.select_country_icon)
         navButton.setOnClickListener {
-            val intent = Intent(this, SearchActivity::class.java)
+            val intent = Intent(this, ChooseLocationActivity::class.java)
             startActivity(intent)
         }
     }

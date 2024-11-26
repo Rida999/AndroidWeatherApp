@@ -1,14 +1,11 @@
 package com.example.midtermproject
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.AdapterView
-import android.widget.ArrayAdapter
-import android.widget.Button
-import android.widget.Spinner
-import android.widget.TextView
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -17,7 +14,6 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import okhttp3.*
 import java.io.IOException
-import android.content.Intent
 
 class ChooseLocationActivity : AppCompatActivity() {
 
@@ -75,30 +71,47 @@ class ChooseLocationActivity : AppCompatActivity() {
                     val responseString = responseBody.string()
                     val countryListType = object : TypeToken<List<Country>>() {}.type
                     val countries: List<Country> = Gson().fromJson(responseString, countryListType)
-                    val countryNames = countries.map { it.name.common }.sorted() // Sort the country names alphabetically
+                    val countryNames = countries.map { it.name.common }
+                        .sorted() // Sort the country names alphabetically
 
                     runOnUiThread {
-                        val adapter = ArrayAdapter(this@ChooseLocationActivity, android.R.layout.simple_spinner_item, countryNames)
+                        val adapter = ArrayAdapter(
+                            this@ChooseLocationActivity,
+                            android.R.layout.simple_spinner_item,
+                            countryNames
+                        )
                         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
                         countrySpinner.adapter = adapter
 
-                        countrySpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-                            override fun onItemSelected(parent: AdapterView<*>, view: View, position: Int, id: Long) {
-                                if (isFirstSelection) {
-                                    isFirstSelection = false
-                                    return
-                                }
-                                val selectedCountry = countryNames[position]
-                                if (!selectedCountries.contains(selectedCountry)) {
-                                    selectedCountries.add(selectedCountry)
-                                    selectedCountriesAdapter.notifyDataSetChanged()
-                                }
-                            }
+                        countrySpinner.onItemSelectedListener =
+                            object : AdapterView.OnItemSelectedListener {
+                                override fun onItemSelected(
+                                    parent: AdapterView<*>,
+                                    view: View,
+                                    position: Int,
+                                    id: Long
+                                ) {
+                                    if (isFirstSelection) {
+                                        isFirstSelection = false
+                                        return
+                                    }
+                                    val selectedCountry = countryNames[position]
 
-                            override fun onNothingSelected(parent: AdapterView<*>) {
-                                // Do nothing
+                                    // Navigate to MainActivity and pass the selected country
+                                    val intent = Intent(
+                                        this@ChooseLocationActivity,
+                                        MainActivity::class.java
+                                    ).apply {
+                                        putExtra("selected_country", selectedCountry)
+                                    }
+                                    startActivity(intent)
+                                    finish() // Optional: Close ChooseLocationActivity
+                                }
+
+                                override fun onNothingSelected(parent: AdapterView<*>) {
+                                    // Do nothing
+                                }
                             }
-                        }
                     }
                 }
             }
@@ -117,7 +130,8 @@ class SelectedCountriesAdapter(
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_country, parent, false)
+        val view =
+            LayoutInflater.from(parent.context).inflate(R.layout.item_country, parent, false)
         return ViewHolder(view)
     }
 
