@@ -1,7 +1,6 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
-
     id("com.google.gms.google-services")
 }
 
@@ -52,6 +51,9 @@ dependencies {
     implementation("com.google.firebase:firebase-auth:22.1.1") // Add Firebase Auth
     implementation("com.google.firebase:firebase-database:20.2.2") // Add Firebase Database
 
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+
+    implementation ("com.squareup.okhttp3:okhttp:4.11.0") // Use the latest version
+
 }
-
-
