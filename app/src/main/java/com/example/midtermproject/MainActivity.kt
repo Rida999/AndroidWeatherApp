@@ -206,7 +206,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun logoutUser() {
-        val intent = Intent(this, SearchActivity::class.java)
+        val intent = Intent(this, Login::class.java)
         startActivity(intent)
         finish()  // Close the current activity if you no longer need it
     }
