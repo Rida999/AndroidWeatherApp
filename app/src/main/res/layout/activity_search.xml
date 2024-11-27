@@ -9,7 +9,7 @@
         android:layout_width="match_parent"
         android:layout_height="56dp"
         android:layout_alignParentTop="true"
-        android:background="?android:attr/colorPrimary"
+        android:background="#0099CC"
         android:titleTextColor="#fff"
         android:title="Search">
 
@@ -52,6 +52,7 @@
         android:layout_marginTop="16dp"
         android:onClick="onSearchClicked"
         android:text="Search"
+        android:backgroundTint="#0099CC"
         android:layout_centerHorizontal="true"/>
 
 </RelativeLayout>
