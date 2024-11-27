@@ -5,7 +5,12 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.*
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
+import android.widget.Button
+import android.widget.Spinner
+import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -21,7 +26,6 @@ class ChooseLocationActivity : AppCompatActivity() {
     private lateinit var selectedCountriesRecyclerView: RecyclerView
     private lateinit var selectedCountriesAdapter: SelectedCountriesAdapter
     private val selectedCountries = mutableListOf<String>()
-    private var isFirstSelection = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,10 +37,8 @@ class ChooseLocationActivity : AppCompatActivity() {
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.setDisplayShowTitleEnabled(false) // Disable default title
 
-        // Handle back button click
         toolbar.setNavigationOnClickListener {
-            val intent = Intent(this, Login::class.java)
-            startActivity(intent)
+            super.onBackPressed()
             finish()
         }
 
@@ -72,7 +74,7 @@ class ChooseLocationActivity : AppCompatActivity() {
                     val countryListType = object : TypeToken<List<Country>>() {}.type
                     val countries: List<Country> = Gson().fromJson(responseString, countryListType)
                     val countryNames = countries.map { it.name.common }
-                        .sorted() // Sort the country names alphabetically
+                        .sorted()
 
                     runOnUiThread {
                         val adapter = ArrayAdapter(
@@ -91,21 +93,25 @@ class ChooseLocationActivity : AppCompatActivity() {
                                     position: Int,
                                     id: Long
                                 ) {
-                                    if (isFirstSelection) {
-                                        isFirstSelection = false
-                                        return
-                                    }
                                     val selectedCountry = countryNames[position]
 
                                     // Navigate to MainActivity and pass the selected country
-                                    val intent = Intent(
-                                        this@ChooseLocationActivity,
-                                        MainActivity::class.java
-                                    ).apply {
-                                        putExtra("selected_country", selectedCountry)
+                                    if (selectedCountry.isNotEmpty()) {
+                                        val intent = Intent(
+                                            this@ChooseLocationActivity,
+                                            MainActivity::class.java
+                                        ).apply {
+                                            putExtra("CITY_NAME", selectedCountry)
+                                        }
+                                        startActivity(intent)
+                                        finish() // Optional: Close ChooseLocationActivity
+                                    } else {
+                                        Toast.makeText(
+                                            this@ChooseLocationActivity,
+                                            "Please select a country",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
                                     }
-                                    startActivity(intent)
-                                    finish() // Optional: Close ChooseLocationActivity
                                 }
 
                                 override fun onNothingSelected(parent: AdapterView<*>) {

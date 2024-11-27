@@ -39,6 +39,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var weatherIcon: ImageView
     private lateinit var loadingAnimationView: LottieAnimationView
     private lateinit var AppBackground: androidx.constraintlayout.widget.ConstraintLayout
+    private lateinit var navButton: ImageView
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -77,10 +78,15 @@ class MainActivity : AppCompatActivity() {
         fetchWeatherData(cityName)
 
         // Set up the button to navigate to the search page
-        val navButton: ImageView = findViewById(R.id.select_country_icon)
+        navButton = findViewById(R.id.select_country_icon)
         navButton.setOnClickListener {
             val intent = Intent(this, ChooseLocationActivity::class.java)
             startActivity(intent)
+        }
+
+        val navButton: ImageView = findViewById(R.id.select_country_icon)
+        navButton.setOnClickListener { view ->
+            showSelectMenu(view)
         }
     }
 
@@ -214,6 +220,30 @@ class MainActivity : AppCompatActivity() {
 
     private fun showToast(message: String) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+    }
+
+    private fun showSelectMenu(anchor: View) {
+        val popupMenu = PopupMenu(this, anchor)
+        popupMenu.menuInflater.inflate(R.menu.select_menu, popupMenu.menu)
+
+        popupMenu.setOnMenuItemClickListener { item: MenuItem ->
+            when (item.itemId) {
+                R.id.menu_search -> {
+                    // Handle "Search" action
+                    val intent = Intent(this, SearchActivity::class.java)
+                    startActivity(intent)
+                    true
+                }
+                R.id.menu_selection_search -> {
+                    // Handle "Selection Search" action
+                    val intent = Intent(this, ChooseLocationActivity::class.java)
+                    startActivity(intent)
+                    true
+                }
+                else -> false
+            }
+        }
+        popupMenu.show()
     }
 
     // Retrofit Service and Response Classes
