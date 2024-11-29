@@ -1,5 +1,6 @@
 package com.example.midtermproject
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.*
@@ -20,6 +21,7 @@ class Signup : AppCompatActivity() {
     private lateinit var passwordError: TextView
     private lateinit var confirmPasswordError: TextView
     private lateinit var signupButton: Button
+    private lateinit var signUpLink: TextView
 
     private lateinit var auth: FirebaseAuth
     private lateinit var database: FirebaseDatabase
@@ -45,6 +47,7 @@ class Signup : AppCompatActivity() {
         passwordError = findViewById(R.id.passwordError)
         confirmPasswordError = findViewById(R.id.confirmPasswordError)
         signupButton = findViewById(R.id.signupButton)
+        signUpLink = findViewById(R.id.signUpLink)
 
         // Signup Button Click Listener
         signupButton.setOnClickListener {
@@ -80,6 +83,10 @@ class Signup : AppCompatActivity() {
                         }
                     }
             }
+        }
+        signUpLink.setOnClickListener {
+            val intent = Intent(this, Login::class.java)
+            startActivity(intent)
         }
     }
 
