@@ -17,6 +17,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.airbnb.lottie.LottieAnimationView
+import com.example.midtermproject.TemperatureSelectionActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -40,7 +41,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var loadingAnimationView: LottieAnimationView
     private lateinit var AppBackground: androidx.constraintlayout.widget.ConstraintLayout
     private lateinit var navButton: ImageView
-
+    private lateinit var selectedUnit: String
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,7 +54,7 @@ class MainActivity : AppCompatActivity() {
         cityNameTextView = findViewById(R.id.country_name)
         currentTempTextView = findViewById(R.id.temperature)
         weatherIcon = findViewById(R.id.weather_icon)
-        AppBackground=findViewById(R.id.main)
+        AppBackground = findViewById(R.id.main)
 
         // Initialize weather details RecyclerView
         weatherDetailsRecyclerView = findViewById(R.id.weather_details_recycler_view)
@@ -75,7 +76,8 @@ class MainActivity : AppCompatActivity() {
 
         // Fetch weather data
         val cityName = intent.getStringExtra("CITY_NAME") ?: "Beirut"
-        fetchWeatherData(cityName)
+        selectedUnit = intent.getStringExtra("SELECTED_TEMPERATURE_UNIT") ?: "celsius"
+        fetchWeatherData(cityName, selectedUnit)
 
         val navButton: ImageView = findViewById(R.id.select_country_icon)
         navButton.setOnClickListener { view ->
@@ -83,7 +85,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun fetchWeatherData(city: String) {
+    private fun fetchWeatherData(city: String, degree: String) {
         // Show the loading animation at the start
         loadingAnimationView.visibility = View.VISIBLE
 
@@ -102,24 +104,36 @@ class MainActivity : AppCompatActivity() {
                     if (weatherData != null) {
                         val cityName = weatherData.city.name
                         val currentTemp = weatherData.list[0].main.temp
+                        val minTemp = weatherData.list[0].main.temp_min
+                        val maxTemp = weatherData.list[0].main.temp_max
+                        val timezoneOffset = weatherData.city.timezone // Get the timezone offset
+                        val localOffSet = 2 * 3600 // 2 hours in seconds
+
                         val weatherDetails = listOf(
-                            WeatherDetail(R.drawable.ic_min_temp, "Min Temp", "${weatherData.list[0].main.temp_min}°C"),
-                            WeatherDetail(R.drawable.ic_max_temp, "Max Temp", "${weatherData.list[0].main.temp_max}°C"),
+                            WeatherDetail(R.drawable.ic_min_temp, "Min Temp", formatTemp(minTemp, degree)),
+                            WeatherDetail(R.drawable.ic_max_temp, "Max Temp", formatTemp(maxTemp, degree)),
                             WeatherDetail(R.drawable.ic_wind, "Wind", "${weatherData.list[0].wind.speed} m/s"),
                             WeatherDetail(R.drawable.ic_humidity, "Humidity", "${weatherData.list[0].main.humidity}%"),
                             WeatherDetail(R.drawable.ic_pressure, "Pressure", "${weatherData.list[0].main.pressure} hPa"),
-                            WeatherDetail(R.drawable.ic_sunrise, "Sunrise", formatUnixTime(weatherData.city.sunrise))
+                            WeatherDetail(R.drawable.ic_sunrise, "Sunrise", formatUnixTime(weatherData.city.sunrise + timezoneOffset - localOffSet)),
                         )
 
                         val weatherCondition = weatherData.list[0].weather.firstOrNull()?.main ?: "Clear"
                         val currentWeatherIcon = getWeatherIcon(weatherCondition)
                         val currentAppBg = getAppBackground(weatherCondition)
 
-                        val hourlyWeather = generateHourlyWeather(weatherData.list)
+                        val hourlyWeather = generateHourlyWeather(weatherData.list,degree)
 
                         withContext(Dispatchers.Main) {
                             cityNameTextView.text = "$cityName, ${weatherData.city.country}"
-                            currentTempTextView.text = "${currentTemp}°C"
+
+                            if (degree == "fahrenheit") {
+                                val fahrenheit = (currentTemp * 9/5) + 32
+                                currentTempTextView.text = "${fahrenheit.toInt()}°F"
+                            } else {
+                                currentTempTextView.text = "${currentTemp}°C"
+                            }
+
                             weatherIcon.setImageResource(currentWeatherIcon)
                             weatherDetailsAdapter.updateWeatherDetails(weatherDetails)
                             hourlyWeatherAdapter.updateHourlyWeather(hourlyWeather)
@@ -146,7 +160,16 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun generateHourlyWeather(forecastList: List<HourlyForecast>): List<HourlyWeather> {
+    private fun formatTemp(temp: Float, unit: String): String {
+        return if (unit == "fahrenheit") {
+            val fahrenheit = (temp * 9/5) + 32
+            "${fahrenheit.toInt()}°F"
+        } else {
+            "${temp}°C"
+        }
+    }
+
+    private fun generateHourlyWeather(forecastList: List<HourlyForecast>, degree: String): List<HourlyWeather> {
         // Filter out duplicates based on time and get only the first 8 unique hours
         val uniqueHourlyWeather = forecastList
             .distinctBy { formatUnixTime(it.dt) } // Remove duplicate times
@@ -158,7 +181,15 @@ class MainActivity : AppCompatActivity() {
             val weatherCondition = forecast.weather.firstOrNull()?.main ?: "Clear" // Default to "Clear" if no condition is found
             val iconResId = getWeatherIcon(weatherCondition)
 
-            HourlyWeather(time, "${temp.toInt()}°C", iconResId)
+            // Convert temperature based on selected unit
+            val temperature = if (degree == "fahrenheit") {
+                // Convert Celsius to Fahrenheit
+                val fahrenheit = (temp * 9/5) + 32
+                "${fahrenheit.toInt()}°F"
+            } else {
+                "${temp.toInt()}°C"
+            }
+            HourlyWeather(time, temperature, iconResId)
         }
     }
 
@@ -194,7 +225,17 @@ class MainActivity : AppCompatActivity() {
 
         popupMenu.setOnMenuItemClickListener { item: MenuItem ->
             when (item.itemId) {
+                R.id.Forecast -> {
+                    // Navigate to ForecastActivity and pass the city name
+                    val cityName = cityNameTextView.text.toString() // Get the current city name
+                    val intent = Intent(this, ForecastActivity::class.java)
+                    intent.putExtra("CITY_NAME", cityName) // Pass the city name
+                    intent.putExtra("SELECTED_TEMPERATURE_UNIT", selectedUnit) // Pass the city name
+                    startActivity(intent)
+                    true
+                }
                 R.id.logout -> {
+                    // Handle logout
                     logoutUser()
                     true
                 }
@@ -209,7 +250,6 @@ class MainActivity : AppCompatActivity() {
         startActivity(intent)
         finish()  // Close the current activity if you no longer need it
     }
-
 
     private fun showToast(message: String) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
@@ -228,8 +268,8 @@ class MainActivity : AppCompatActivity() {
                     true
                 }
                 R.id.menu_selection_search -> {
-                    // Handle "Selection Search" action
-                    val intent = Intent(this, ChooseLocationActivity::class.java)
+                    // Handle "Temperature Search" action
+                    val intent = Intent(this, TemperatureSelectionActivity::class.java)
                     startActivity(intent)
                     true
                 }
@@ -254,7 +294,7 @@ class MainActivity : AppCompatActivity() {
         val list: List<HourlyForecast>
     )
 
-    data class City(val name: String, val country: String, val sunrise: Long)
+    data class City(val name: String, val country: String, val sunrise: Long, val timezone: Int)
 
     data class HourlyForecast(
         val dt: Long,
