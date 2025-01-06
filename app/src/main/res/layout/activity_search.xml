@@ -4,40 +4,46 @@
     android:layout_height="match_parent">
 
     <!-- Toolbar (Navigation Bar) -->
+
+    <!-- Search Bar below the Toolbar -->
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="56dp"
         android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginTop="0dp"
+        android:layout_marginEnd="0dp"
         android:background="#0099CC"
-        android:titleTextColor="#fff"
-        android:title="Search">
+        android:title="@string/search"
+        android:titleTextColor="#fff">
 
         <!-- Back Button in Toolbar -->
         <ImageButton
             android:id="@+id/back_button"
-            android:layout_marginTop="-10dp"
             android:layout_width="80dp"
             android:layout_height="80dp"
             android:layout_alignParentStart="true"
             android:layout_centerVertical="true"
+            android:layout_marginTop="-10dp"
             android:background="?android:attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Back"
+            android:contentDescription="@string/back"
             android:onClick="onBackPressed"
-            android:src="@drawable/ic_back"
-            android:scaleType="fitXY"/>
+            android:scaleType="fitXY"
+            android:src="@drawable/ic_back" />
     </androidx.appcompat.widget.Toolbar>
 
-    <!-- Search Bar below the Toolbar -->
     <EditText
         android:id="@+id/search_edit_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/toolbar"
         android:layout_marginTop="16dp"
+        android:autofillHints=""
         android:background="@drawable/search_bar_background"
-        android:hint="Enter city name"
+        android:hint="@string/enter_city_name"
         android:importantForAccessibility="yes"
+        android:inputType=""
         android:padding="12dp"
         android:textColor="#333"
         android:layout_marginStart="16dp"
@@ -51,7 +57,7 @@
         android:layout_below="@id/search_edit_text"
         android:layout_marginTop="16dp"
         android:onClick="onSearchClicked"
-        android:text="Search"
+        android:text="@string/search"
         android:backgroundTint="#0099CC"
         android:layout_centerHorizontal="true"/>
 

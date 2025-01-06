@@ -75,4 +75,6 @@ class SearchActivity : AppCompatActivity() {
         super.onBackPressed()
         finish()  // Go back to MainActivity
     }
+
+    fun onBackPressed(view: View) {}
 }

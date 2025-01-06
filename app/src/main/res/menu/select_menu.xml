@@ -4,5 +4,5 @@
         android:title="Search" />
     <item
         android:id="@+id/menu_selection_search"
-        android:title="Selection Search" />
+        android:title="Temperature Degree" />
 </menu>
