@@ -18,8 +18,14 @@ class Login : AppCompatActivity() {
     private lateinit var passwordError: TextView
     private lateinit var loginButton: Button
     private lateinit var signUpLink: TextView
+    private lateinit var changePasswordLink: TextView
+    private lateinit var resetPasswordLink: TextView
 
     private lateinit var auth: FirebaseAuth
+
+    private var failedAttempts = 0
+    private var lockoutTime = 0L
+    private val lockoutDuration = 60000L  // 1 minute lockout
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,9 +41,17 @@ class Login : AppCompatActivity() {
         passwordError = findViewById(R.id.passwordError)
         loginButton = findViewById(R.id.loginButton)
         signUpLink = findViewById(R.id.signUpLink)
+        changePasswordLink = findViewById(R.id.changePasswordLink)
+        resetPasswordLink = findViewById(R.id.resetPasswordLink)
 
         // Login Button Click Listener
         loginButton.setOnClickListener {
+            // Check if the user is currently locked out
+            if (System.currentTimeMillis() < lockoutTime) {
+                Toast.makeText(this, "Too many failed attempts. Please try again later.", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
             if (validateInputs()) {
                 val email = emailInput.text.toString()
                 val password = passwordInput.text.toString()
@@ -45,12 +59,24 @@ class Login : AppCompatActivity() {
                 auth.signInWithEmailAndPassword(email, password)
                     .addOnCompleteListener(this) { task ->
                         if (task.isSuccessful) {
+                            // Reset failed attempts and proceed to the next activity
+                            failedAttempts = 0
+                            lockoutTime = 0  // Remove lockout
                             Toast.makeText(this, "Login successful!", Toast.LENGTH_SHORT).show()
                             val intent = Intent(this, SearchActivity::class.java)
                             startActivity(intent)
                             finish()
-                        }else {
-                            Toast.makeText(this, "Invalid credentials", Toast.LENGTH_SHORT).show()
+                        } else {
+                            failedAttempts++
+                            if (failedAttempts >= 5) {
+                                // Lock the user out for 1 minute
+                                lockoutTime = System.currentTimeMillis() + lockoutDuration
+                                Toast.makeText(this, "Too many failed attempts. You are locked out for 1 minute.", Toast.LENGTH_SHORT).show()
+                            } else {
+                                // Show remaining attempts
+                                val remainingAttempts = 5 - failedAttempts
+                                Toast.makeText(this, "Invalid credentials. You have $remainingAttempts attempts left.", Toast.LENGTH_SHORT).show()
+                            }
                         }
                     }
             }
@@ -59,6 +85,16 @@ class Login : AppCompatActivity() {
         // Sign Up Link Click Listener
         signUpLink.setOnClickListener {
             val intent = Intent(this, Signup::class.java)
+            startActivity(intent)
+        }
+
+        changePasswordLink.setOnClickListener {
+            val intent = Intent(this, ChangePassword::class.java)
+            startActivity(intent)
+        }
+
+        resetPasswordLink.setOnClickListener {
+            val intent = Intent(this, ResetPassword::class.java)
             startActivity(intent)
         }
     }
