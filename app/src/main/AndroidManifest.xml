@@ -17,14 +17,14 @@
         android:theme="@style/Theme.MidtermProject"
         tools:targetApi="31">
         <activity
-            android:name="com.example.midtermproject.Login"
+            android:name="com.example.midtermproject.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".MainActivity" />
+        <activity android:name=".Login" />
         <activity android:name=".SearchActivity" />
         <activity android:name=".Signup" />
         <activity android:name=".TemperatureSelectionActivity"/>
