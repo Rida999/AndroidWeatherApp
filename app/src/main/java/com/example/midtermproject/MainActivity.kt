@@ -269,7 +269,9 @@ class MainActivity : AppCompatActivity() {
                 }
                 R.id.menu_selection_search -> {
                     // Handle "Temperature Search" action
+                    val cityName = cityNameTextView.text.toString() // Get the current city name
                     val intent = Intent(this, TemperatureSelectionActivity::class.java)
+                    intent.putExtra("CITY_NAME", cityName) // Pass the city name
                     startActivity(intent)
                     true
                 }

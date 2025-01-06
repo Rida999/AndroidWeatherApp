@@ -14,7 +14,7 @@
         android:layout_marginStart="124dp"
         android:layout_marginTop="16dp"
         android:layout_marginEnd="59dp"
-        android:text="7-Day Forecast"
+        android:text="@string/_5_day_forecast"
         android:textColor="@android:color/white"
         android:textSize="24sp"
         android:textStyle="bold"

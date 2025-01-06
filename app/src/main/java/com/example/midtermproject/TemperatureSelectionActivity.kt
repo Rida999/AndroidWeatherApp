@@ -23,6 +23,7 @@ class TemperatureSelectionActivity : AppCompatActivity() {
         val temperatureRadioGroup: RadioGroup = findViewById(R.id.temperatureRadioGroup)
         val saveButton: Button = findViewById(R.id.saveButton)
         val backButton: ImageButton = findViewById(R.id.back_button)
+        val cityName = intent.getStringExtra("CITY_NAME") ?: "Beirut"
 
         // Set the toolbar as the action bar
         setSupportActionBar(toolbar)
@@ -46,6 +47,7 @@ class TemperatureSelectionActivity : AppCompatActivity() {
                 // Create an intent to pass the data back
                 val resultIntent = Intent(this, MainActivity::class.java)
 
+                resultIntent.putExtra("CITY_NAME", cityName)
                 resultIntent.putExtra("SELECTED_TEMPERATURE_UNIT", selectedTemperatureUnit)
                 startActivity(resultIntent)
             }
